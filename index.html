@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.3.2/aframe/build/aframe-ar.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+    #tap-to-start {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      font-size: 22px;
+      z-index: 9999;
+    }
+    #loading {
+      position: fixed;
+      top: 10px; left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 14px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      font-size: 14px;
+      border-radius: 6px;
+      display: none;
+      z-index: 9999;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="tap-to-start">📱 Tap to Start AR Video</div>
+<div id="loading">Loading video...</div>
+
+<a-scene
+  embedded
+  vr-mode-ui="enabled: false"
+  renderer="logarithmicDepthBuffer: true;"
+  arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: false;"
+>
+  
+  <!-- Marker -->
+  <a-marker preset="hiro" id="marker">
+
+    <!-- Background plane -->
+    <a-plane 
+      position="0 0 0" 
+      rotation="-90 0 0"
+      width="2" 
+      height="2" 
+      color="#222">
+    </a-plane>
+
+    <!-- Upright video -->
+    <a-video 
+      src="#arVideo" 
+      position="0 1 0"
+      rotation="0 0 0"
+      width="4" 
+      height="2.3"
+      id="videoScreen">
+    </a-video>
+
+  </a-marker>
+
+  <a-entity camera></a-entity>
+
+  <!-- Video asset -->
+  <a-assets>
+    <video 
+      id="arVideo" 
+      src="https://files.catbox.moe/tyjx5o.mp4" 
+      preload="auto"
+      loop
+      muted 
+      playsinline 
+      crossorigin="anonymous">
+    </video>
+  </a-assets>
+
+</a-scene>
+
+<script>
+const startBtn = document.querySelector("#tap-to-start");
+const loadingTxt = document.querySelector("#loading");
+const video = document.querySelector("#arVideo");
+const marker = document.querySelector("#marker");
+
+let enabled = false;
+
+// Force play on iOS after user tap
+startBtn.addEventListener("click", () => {
+  startBtn.style.display = "none";
+  loadingTxt.style.display = "block";
+
+  video.play().then(() => {
+    loadingTxt.style.display = "none";
+    enabled = true;
+  }).catch(err => {
+    console.log("Autoplay blocked:", err);
+  });
+});
+
+// Marker events
+marker.addEventListener("markerFound", () => {
+  if (enabled) video.play();
+});
+
+marker.addEventListener("markerLost", () => {
+  if (enabled) video.pause();
+});
+</script>
+
+</body>
+</html>
